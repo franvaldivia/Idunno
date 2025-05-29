@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Roxy by GetTemplates.co</title>
+    <meta name="description" content="Roxy">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/select2/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/owlcarousel/owl.carousel.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/lightcase/lightcase.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400|Work+Sans:300,400,700" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.linearicons.com/free/1.0.0/icon-font.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.js"></script>
+</head>
+<body style="zoom: 80%; height: auto; min-height: 100vh; overflow-x: hidden;" data-spy="scroll" data-target="#navbar" class="static-layout">
+
+    
+
+    <div class="jumbotron d-flex flex-column align-items-center">
+
+        <h1 style="color: white; text-align: center; margin-bottom: 150px; margin-top: 10px; position: relative; z-index: 2;font-size: 10rem;">¡Participa gratis y gana premios que te encantarán!</h1>
+
+        
+        <div class="container row-container">
+            <div class="sub-container cola">
+                <h1>Cola</h1>
+                <h5><span id="cola" style="white-space: pre-wrap;"> - </span></h5>
+            </div>
+            <div class="sub-container juego">
+                <h1>Juego</h1>
+                <h2><span id="timer"></span></h2>
+                <h4><span id="step"></span></h4>
+                <h3><span id="nombre" style="white-space: pre-wrap;">¿Te atreves con nuestro reto?</span></h3>
+            </div>
+        </div>
+        
+        <div class="container text-center">
+            <h1>Principal</h1>
+            <div class="nombre-container">
+                <div class="nombre-content">
+                    <h4>Mención</h4>
+                </div>
+            </div>
+            <div class="bloque">
+                <img id="imagen-publicidad" src="{{ url_for('static', filename='img/muestra.png') }}" alt="Publicidad" class="display-2 mb-4">
+            </div>
+            <div class="nombre-container">
+                <div class="nombre-content">
+                    <h4>Nombre</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="container container-normas text-center">
+            <h1>Normas del juego</h1>
+            <div class="normas-layout">
+              <div class="normas-container">
+                <ol class="normas-lista">
+                  <li>Entra a tu cuenta de Instagram</li>
+                  <li>Haz tu cuenta pública para que podamos recibir la historia</li>
+                  <li>Abre la sección de historias y haz foto al cuadro "Principal"</li>
+                  <li>Usa el recuadro de "Mención" para etiquetarnos</li>
+                  <li>Usa el recuadro de "Nombre" para decirnos cómo te llamas</li>
+                  <li>Publica la historia</li>
+                  <li>🎁 Bonus: Si nos mandas una captura de tu historia pasadas 15h, ¡mañana juegas 2 veces!</li>
+                </ol>
+              </div>
+              <div class="ejemplo-container">
+                <h2>Ejemplo</h2>
+                <img src="{{ url_for('static', filename='img/muestra.png') }}" alt="Ejemplo de historia" class="ejemplo-img">
+              </div>
+            </div>
+          </div>
+          
+
+    
+        <div class="rectangle-1"></div>
+        <div class="rectangle-2"></div>
+        <div class="rectangle-transparent-1"></div>
+        <div class="rectangle-transparent-2"></div>
+        <div class="circle-1"></div>
+        <div class="circle-2"></div>
+        <div class="circle-3"></div>
+        <div class="triangle triangle-1"><img src="{{ url_for('static', filename='img/obj_triangle.png') }}" alt=""></div>
+        <div class="triangle triangle-2"><img src="{{ url_for('static', filename='img/obj_triangle.png') }}" alt=""></div>
+        <div class="triangle triangle-3"><img src="{{ url_for('static', filename='img/obj_triangle.png') }}" alt=""></div>
+        <div class="triangle triangle-4"><img src="{{ url_for('static', filename='img/obj_triangle.png') }}" alt=""></div>
+
+    </div>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <script>
+        const socket = io();
+        //let previousValue = null;
+        let currentQuestion = null;
+        let currentAnswer = null;
+        let correctCounter = 0;  // Contador para las respuestas correctas consecutivas
+        let currentPlayer = null;
+        let countdown; // Variable para almacenar el intervalo del temporizador
+        let timerActive = true; // Variable para verificar si ya hay un temporizador activo
+    
+        // Conexión con el servidor WebSocket
+        socket.on('connect', () => {
+            console.log('Conectado al servidor');
+            fetchFirstQuestion();
+            
+        });
+    
+        // Manejamos el evento 'QuestionResult' desde el servidor en un solo lugar
+        socket.on('QuestionResult', (data) => {
+            let nombreElement = document.getElementById('nombre');
+            currentQuestion = data.question;  // Almacenar la pregunta actual
+            nombreElement.textContent = currentQuestion;  // Mostrar la pregunta
+            currentAnswer = data.answer;
+            console.log('Paso 2. Pregunta recibida');
+            console.log('Pregunta recibida =', currentQuestion); 
+            console.log('Respuesta recibida =', currentAnswer );
+            let stepElement = document.getElementById('step');
+            step = correctCounter + 1;
+            stepElement.textContent = 'Pregunta ' + step + ' de 4';
+        });
+
+        socket.on('timer', (data) => {
+            let timerElement = document.getElementById('timer');
+
+            if (data.value === true && timerActive === true) {
+                // Si ya hay un temporizador en marcha, detenerlo antes de iniciar uno nuevo
+                if (countdown) {
+                    clearInterval(countdown);
+                }
+
+                let timeLeft = 12;
+
+
+                // Muestra el temporizador y actualízalo cada segundo
+                timerElement.textContent = timeLeft + 's';
+                
+                countdown = setInterval(() => {
+                    timeLeft--;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        countdown = null; // Limpia la referencia del temporizador
+                        timerElement.textContent = ''; // Limpia el temporizador al llegar a 0
+                    } else {
+                        timerElement.textContent = timeLeft + 's';
+                    }
+                }, 1000);
+            } 
+            
+            if (data.value === false && countdown) {
+
+                clearInterval(countdown); // Detiene el temporizador
+                countdown = null; // Limpia la referencia del temporizador
+                timerElement.textContent = ''; // Limpia el contenido si data es false
+            }
+        });
+
+
+
+        
+    
+        socket.on('answerResult', async (data) => {
+            
+            let nombreElement = document.getElementById('nombre');
+            let timerElement = document.getElementById('timer');  // Asegúrate de tener una referencia al elemento del temporizador
+
+            if (currentPlayer) {
+                console.log('Paso 3. Esperando la respuesta del usuario....');
+                if (data && data.correct) {
+                    
+                    console.log(" Paso 4.1. Respuesta correcta. Cargando la siguiente pregunta :) ");
+                    correctCounter++; // Incrementar el contador de respuestas correctas
+                    socket.emit('timer_2', 'b');
+                    socket.emit('let_play', 'b');
+                    nombreElement.textContent = `Correcto`;
+                    let stepElement = document.getElementById('step');
+                    stepElement.textContent ='';
+                    
+                    // Detenemos el temporizador y ocultamos su visualización
+                    clearInterval(countdown);
+                    countdown = null;
+                    timerElement.textContent = '';
+                    timerActive = false; // Desactivamos el temporizador
+
+                    setTimeout(() => {
+                        if (correctCounter >= 4) {
+                            socket.emit('timer_2', 'b');
+                            socket.emit('let_play', 'b');
+                            let stepElement = document.getElementById('step');
+                            stepElement.textContent ='';
+                            nombreElement.textContent = `Enhorabuena has ganado, recoge tu premio :)`;
+                            socket.emit('motor');
+                            correctCounter = 0;
+                           // previousValue = data.value;
+                            setTimeout(() => {
+                                currentPlayer = null;
+                               // previousValue = data.value;
+                                
+                                socket.emit('messageProcessed');
+                                setTimeout(() => {
+                                    socket.emit('first_question')
+                                    timerActive = true; // Reactivar el temporizador después del mensaje
+                                        }, 3000);
+                                            
+                                 //   previousValue = null;
+                                     // Reiniciar el contador después de alcanzar 4 respuestas correctas
+                                    timerActive = true; // Reactivar el temporizador
+                                }, 4000);
+
+                        } else {
+                            fetchQuestion(); // Cargar la siguiente pregunta si la respuesta es correcta
+                            timerActive = true; // Reactivar el temporizador
+                        }
+                    }, 3000);
+                } else {
+                    console.log(" Paso 4.2. Respuesta incorrecta");
+                    socket.emit('timer_2', 'b');
+                    socket.emit('let_play', 'b');
+                    let stepElement = document.getElementById('step');
+                    stepElement.textContent ='';
+                    nombreElement.textContent = `Respuesta incorrecta :(`;
+
+
+                        setTimeout(() => {
+                            correctCounter = 0;
+                         //   previousValue = data.value;
+                            console.log(" Paso 5. fin del juego ");
+                            socket.emit('messageProcessed');
+                            setTimeout(() => {
+                                socket.emit('first_question')
+                                timerActive = true; // Reactivar el temporizador después del mensaje
+                                    }, 3000);
+
+                    }, 4000);
+                }
+            }
+        });
+
+
+        // Función para obtener la primera pregunta
+
+
+        function fetchFirstQuestion() {
+            socket.emit('first_question');  // Emitir el evento al servidor
+
+        }
+        
+        socket.on('first_question_2', (data) => {
+
+            let nombreElement = document.getElementById('nombre');
+            currentQuestion = data.value;  // Almacenar la pregunta actual
+            nombreElement.textContent = currentQuestion;  // Mostrar la pregunta
+            console.log('Pregunta first_question recibida =', data.value); 
+            console.log('Respuesta first_question recibida =', data.value2 );
+            });
+    
+        // Función para obtener la siguiente pregunta llamando a 'submitAnswer'
+        async function fetchQuestion() {
+            console.log('Paso 1. Llamamos al submitAnswer');
+            socket.emit('submitAnswer');
+            socket.emit('timer_2', 'a');
+            socket.emit('let_play', 'a');
+
+
+        }
+        
+
+        socket.on('newMessage', (data) => {
+            console.log("Paso 0. Nuevo mensaje recibido vía WebSocket:", data.value);
+            let nombreElement = document.getElementById('nombre');
+
+            if (data.value !== null) {
+                // Verificamos si el mensaje es nuevo comparado con el valor anterior
+                    currentPlayer = data.value;
+                    nombreElement.textContent = `${data.value} es tu turno de jugar`;
+               //     previousValue = data.value; // Actualizamos el valor previo
+
+                    // Primera actualización después de 4 segundos
+                    setTimeout(() => {
+                        nombreElement.textContent = `Si aguantas la historia más de 15 horas y nos envías una captura de pantalla por privado como esta`;
+                    }, 3000);
+
+                    // Segunda actualización después de 8 segundos
+                    setTimeout(() => {
+                        // Mostramos una imagen (puedes reemplazar el contenido HTML con la imagen deseada)
+                        nombreElement.innerHTML =  `
+                    <img src="static/img/muestra2.jpg" alt="Captura de pantalla" style="width: 20%; height: auto; margin-top: -180px;">
+                    <p style="text-align: center; margin-top: -150px; margin-botton: -50px;">* Se debe de ver hace cuanto tiempo se publico la historia</p>`;
+                    }, 9000);
+
+                    // Tercera actualización después de 12 segundos
+                    setTimeout(() => {
+                        nombreElement.textContent = `¡La próxima vez jugarás 2 veces!`;
+                    }, 17000);
+
+                    // Cuarta actualización después de 16 segundos
+                    setTimeout(() => {
+                        nombreElement.textContent = `Vamos con la primera pregunta`;
+                    }, 20000);
+
+                    // Pausa de 20 segundos antes de continuar con la función para obtener la nueva pregunta
+                    setTimeout(() => {
+                        fetchQuestion(); // Llamada a la función para obtener una nueva pregunta
+                    }, 22000); // 20 segundos de pausa
+                } 
+            
+        });
+
+        socket.on('newMessage2', (data) => {
+            console.log("Paso 0.0. Nuevo mensaje recibido vía WebSocket pero que no ha respetado el tiempo:", data.value);
+            const nombreElement = document.getElementById('nombre');
+
+            if (!nombreElement) {
+                console.error("Elemento con ID 'nombre' no encontrado.");
+                return;
+            }
+
+            currentPlayer = data.value;
+            nombreElement.textContent = `${data.value} Aún no han pasado las 24 horas`;
+       //     previousValue = data.value; // Actualizamos el valor previo
+
+            // Primera actualización después de 4 segundos
+            setTimeout(() => {
+                nombreElement.textContent = `Si aguantas la historia más de 15 horas y nos envías una captura de pantalla por privado como esta`;
+                correctCounter = 0;
+           //     previousValue = null;
+                currentPlayer = null;
+            }, 3000);
+
+            // Segunda actualización después de 8 segundos (4 segundos adicionales)
+            setTimeout(() => {
+                        // Mostramos una imagen (puedes reemplazar el contenido HTML con la imagen deseada)
+                        nombreElement.innerHTML =  `
+                    <img src="static/img/muestra2.jpg" alt="Captura de pantalla" style="width: 20%; height: auto; margin-top: -180px;">
+                    <p style="text-align: center; margin-top: -150px; margin-botton: -50px;">* Se debe de ver hace cuanto tiempo se publico la historia</p>`;
+                    }, 9000);
+
+            // Tercera actualización después de 12 segundos (4 segundos adicionales)
+            setTimeout(() => {
+                nombreElement.textContent = `¡La próxima vez jugarás 2 veces!`;
+            }, 17000);
+
+            // Mensaje final y reactivación del temporizador después de 16 segundos
+            setTimeout(() => {
+                console.log("Paso 5. Fin del juego");
+                socket.emit('messageProcessed');
+                socket.emit('tail_state');
+
+                // Emitir la primera pregunta después de 4 segundos adicionales
+                setTimeout(() => {
+                    socket.emit('first_question');
+                    timerActive = true; // Reactivar el temporizador después del mensaje
+                }, 4000);
+            }, 20000); // 20 segundos en total antes de finalizar
+        });
+
+        
+
+        function replace_text(text) {
+            // Recorremos el array y añadimos los números secuenciales
+            var nombresNumerados = text.map(function(nombre, index) {
+                return (index + 1) + ". " + nombre;
+            });
+            
+            // Unimos los nombres numerados con saltos de línea
+            return nombresNumerados.join('\n');
+        }
+
+
+
+
+        // Escuchar la respuesta del servidor para el evento 'tail'
+        socket.on('tail', (data) => {
+
+                let colaElement = document.getElementById('cola');
+                colaElement.textContent = replace_text(data.value);
+            });
+        
+
+        function fetchImagen() {
+            fetch('/get_image')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('imagen-publicidad').src = "{{ url_for('static', filename='img') }}/" + data.image;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+
+
+
+    
+        // Fetch the initial values
+        fetchImagen();
+        
+
+
+        // Fetch new values every 5 seconds
+        setInterval(fetchImagen, 5000);
+        //setInterval(callTailState, 2000);
+    
+    </script>
+    
+    
+</body>
+</html>

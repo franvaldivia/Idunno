@@ -1,0 +1,17 @@
+gunicorn==22.0.0
+Flask==3.0.3
+pandas==2.2.2
+requests == 2.28.2
+google-cloud == 0.34.0
+google-auth == 2.33.0
+google-cloud-vision == 3.7.4
+Pillow == 9.5.0
+openpyxl == 3.1.5
+Flask-SocketIO == 5.3.7
+eventlet == 0.37.0
+thread == 2.0.5
+psycopg2 == 2.9.10
+matplotlib == 3.5.2
+numpy == 1.22.4
+
+

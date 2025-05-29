@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Reporte de Jugadores</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .form-container { margin: 20px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; }
+        .report-container { margin: 20px; text-align: center; }
+        img { max-width: 100%; height: auto; }
+        h1, h2, h3 { text-align: center; }
+        form { display: flex; flex-wrap: wrap; gap: 15px; }
+        form label { font-weight: bold; margin-right: 10px; }
+        form select, form input, form button { padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; }
+        form button { background-color: #4CAF50; color: white; cursor: pointer; }
+        form button:hover { background-color: #45a049; }
+        .stats-container { margin: 20px; font-size: 18px; }
+        .stats-container p { margin: 10px 0; }
+        .pie-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 20px; }
+        .pie-container img { width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Reporte Global</h1>
+    <div class="form-container">
+        <form method="POST" action="/reporting/global">
+            <input type="hidden" name="report_type" value="global">
+            <label for="start_date">Fecha Inicio:</label>
+            <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+
+            <label for="end_date">Fecha Fin:</label>
+            <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+
+            <label for="agrupacion">Agrupación:</label>
+            <select id="agrupacion" name="agrupacion">
+                <option value="dias" {% if agrupacion == "dias" %}selected{% endif %}>Días</option>
+                <option value="semanas" {% if agrupacion == "semanas" %}selected{% endif %}>Semanas</option>
+                <option value="meses" {% if agrupacion == "meses" %}selected{% endif %}>Meses</option>
+            </select>
+
+            <label for="global_publicidad">Publicidad:</label>
+            <select id="global_publicidad" name="global_publicidad">
+                <option value="-" {% if global_publicidad == "-" %}selected{% endif %}>-</option>
+                <option value="Publicidad_1" {% if global_publicidad == "Publicidad_1" %}selected{% endif %}>Publicidad 1</option>
+                <option value="Publicidad_2" {% if global_publicidad == "Publicidad_2" %}selected{% endif %}>Publicidad 2</option>
+                <option value="Publicidad_3" {% if global_publicidad == "Publicidad_3" %}selected{% endif %}>Publicidad 3</option>
+            </select>
+
+            <label for="global_premiado">Premiado:</label>
+            <select id="global_premiado" name="global_premiado">
+                <option value="-" {% if global_premiado == "-" %}selected{% endif %}>-</option>
+                <option value="SI" {% if global_premiado == "SI" %}selected{% endif %}>SI</option>
+                <option value="NO" {% if global_premiado == "NO" %}selected{% endif %}>NO</option>
+            </select>
+
+            <label for="global_completo">Completo:</label>
+            <select id="global_completo" name="global_completo">
+                <option value="-" {% if global_completo == "-" %}selected{% endif %}>-</option>
+                <option value="SI" {% if global_completo == "SI" %}selected{% endif %}>SI</option>
+                <option value="NO" {% if global_completo == "NO" %}selected{% endif %}>NO</option>
+            </select>
+
+            <button type="submit">Generar Reporte Global</button>
+        </form>
+    </div>
+
+    {% if report_data %}
+    <div class="report-container">
+        <h2>Reporte Generado</h2>
+        <img src="data:image/png;base64,{{ report_data['bar_plot_url'] }}" alt="Gráfico Evolutivo">
+        <div class="stats-container">
+            <h3>Estadísticas del Reporte</h3>
+            <p><strong>Media de historias:</strong> {{ report_data['mean_players'] }}</p>
+            <p><strong>Máximo de historias:</strong> {{ report_data['max_value'] }}</p>
+            <p><strong>Mínimo de historias:</strong> {{ report_data['min_value'] }}</p>
+            <p><strong>Total de jugadores en el rango:</strong> {{ report_data['total_players_range'] }}</p>
+            <p><strong>Total de historias:</strong> {{ report_data['total_players_global'] }}</p>
+            <p><strong>Total de historias en rango:</strong> {{ report_data['total_players_global_range'] }}</p>
+            <p><strong>Jugadores con Bonus en el rango:</strong> {{ report_data['jugadores_menos_uno_periodo'] }}</p>
+            <p><strong>% step 1:</strong> {{ report_data['%step1'] }}</p>
+            <p><strong>% step 2:</strong> {{ report_data['%step2'] }}</p>
+            <p><strong>% step 3:</strong> {{ report_data['%step3'] }}</p>
+            <p><strong>% step 4:</strong> {{ report_data['%step4'] }}</p>
+        </div>
+        <div class="pie-container">
+            <div>
+                <h3>Jugadores Repetidos en el Rango</h3>
+                <img src="data:image/png;base64,{{ report_data['pie_plot_range_url'] }}" alt="Gráfico de Tarta">
+                <p><strong>Porcentaje:</strong> {{ report_data['percentage_repeated_range'] }}%</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <h1>Reporte Diario</h1>
+    <div class="form-container">
+        <form method="POST" action="/reporting/day">
+            <input type="hidden" name="report_type" value="daily">
+            <label for="date">Fecha:</label>
+            <input type="date" id="date" name="date" value="{{ date }}" required>
+            <label for="daily_publicidad">Publicidad:</label>
+            <select id="daily_publicidad" name="daily_publicidad">
+                <option value="-" {% if daily_publicidad == "-" %}selected{% endif %}>-</option>
+                <option value="Publicidad_1" {% if daily_publicidad == "Publicidad_1" %}selected{% endif %}>Publicidad 1</option>
+                <option value="Publicidad_2" {% if daily_publicidad == "Publicidad_2" %}selected{% endif %}>Publicidad 2</option>
+                <option value="Publicidad_3" {% if daily_publicidad == "Publicidad_3" %}selected{% endif %}>Publicidad 3</option>
+            </select>
+
+            <label for="daily_premiado">Premiado:</label>
+            <select id="daily_premiado" name="daily_premiado">
+                <option value="-" {% if daily_premiado == "-" %}selected{% endif %}>-</option>
+                <option value="SI" {% if daily_premiado == "SI" %}selected{% endif %}>SI</option>
+                <option value="NO" {% if daily_premiado == "NO" %}selected{% endif %}>NO</option>
+            </select>
+
+            <label for="daily_completo">Completo:</label>
+            <select id="daily_completo" name="daily_completo">
+                <option value="-" {% if daily_completo == "-" %}selected{% endif %}>-</option>
+                <option value="SI" {% if daily_completo == "SI" %}selected{% endif %}>SI</option>
+                <option value="NO" {% if daily_completo == "NO" %}selected{% endif %}>NO</option>
+            </select>
+
+            <button type="submit">Generar Reporte Diario</button>
+        </form>
+    </div>
+
+    {% if report_data_day %}
+    <div class="report-container">
+        <h2>Reporte Generado</h2>
+        {% if report_data_day.bar_plot_url %}
+        <img src="data:image/png;base64,{{ report_data_day['bar_plot_url'] }}" alt="Gráfico de Jugadores por Hora">
+        {% else %}
+        <p>No se pudo generar el gráfico. Verifica los filtros aplicados.</p>
+        {% endif %}
+
+        <div class="stats-container">
+            <h3>Estadísticas del Reporte</h3>
+            <p><strong>Media de jugadores por hora:</strong> {{ report_data_day['mean_players'] }}</p>
+            <p><strong>Máximo de jugadores por hora:</strong> {{ report_data_day['max_value'] }}</p>
+            <p><strong>Mínimo de jugadores por hora:</strong> {{ report_data_day['min_value'] }}</p>
+            <p><strong>Total de jugadores en el día:</strong> {{ report_data_day['total_players_day'] }}</p>
+            <p><strong>% step 1:</strong> {{ report_data_day['%step1'] }}</p>
+            <p><strong>% step 2:</strong> {{ report_data_day['%step2'] }}</p>
+            <p><strong>% step 3:</strong> {{ report_data_day['%step3'] }}</p>
+            <p><strong>% step 4:</strong> {{ report_data_day['%step4'] }}</p>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>
